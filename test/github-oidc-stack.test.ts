@@ -10,14 +10,14 @@ describe('GithubOidcStack', () => {
     }),
   );
 
-  it('restricts trust to main branch of the repo', () => {
+  it('restricts trust to the dev environment of the repo', () => {
     t.hasResourceProperties('AWS::IAM::Role', {
       AssumeRolePolicyDocument: {
         Statement: [
           Match.objectLike({
             Condition: {
               StringEquals: Match.objectLike({
-                'token.actions.githubusercontent.com:sub': 'repo:octo/aws-practice:ref:refs/heads/main',
+                'token.actions.githubusercontent.com:sub': 'repo:octo/aws-practice:environment:dev',
               }),
             },
           }),

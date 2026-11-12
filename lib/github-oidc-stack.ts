@@ -5,8 +5,13 @@ import { Construct } from 'constructs';
 export interface GithubOidcStackProps extends StackProps {
   /** e.g. "your-name/aws-practice" */
   readonly githubRepo: string;
-  /** Branch allowed to deploy */
-  readonly branch?: string;
+  /**
+   * GitHub Environment the deploy job runs in.
+   * When a job uses `environment:`, the OIDC token's `sub` claim becomes
+   * `repo:<owner>/<repo>:environment:<name>` (no branch info), so trust must match that.
+   * Branch restriction is enforced by the environment's "Deployment branches" rule.
+   */
+  readonly environment?: string;
   /**
    * Set when the account already has the GitHub OIDC provider
    * (only one per URL is allowed per account).
@@ -34,7 +39,7 @@ export class GithubOidcStack extends Stack {
       assumedBy: new iam.WebIdentityPrincipal(providerArn, {
         StringEquals: {
           'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-          'token.actions.githubusercontent.com:sub': `repo:${props.githubRepo}:ref:refs/heads/${props.branch ?? 'main'}`,
+          'token.actions.githubusercontent.com:sub': `repo:${props.githubRepo}:environment:${props.environment ?? 'dev'}`,
         },
       }),
       description: 'Assumed by GitHub Actions; can only assume CDK bootstrap roles',

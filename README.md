@@ -31,12 +31,12 @@ npx cdk synth -c enableWaf=true    # 带 WAF
    - 在 Billing 里创建 AWS Budgets，超过 $5 发邮件提醒
 2. **CDK bootstrap**（每个账号和 Region 一次）
    ```bash
-   npx cdk bootstrap aws://<ACCOUNT_ID>/ap-northeast-1
+   npx cdk bootstrap aws://058264388691/ap-northeast-1
    ```
 3. **本地部署验证**
    ```bash
    npx cdk deploy AwsPractice-dev
-   curl "<输出的 ApiUrl>?name=me"
+   curl "https://irbaod44wg.execute-api.ap-northeast-1.amazonaws.com/dev/hello?name=me"
    ```
 4. **创建 GitHub OIDC Role**（一次）
    ```bash
@@ -63,7 +63,8 @@ npx cdk synth -c enableWaf=true    # 带 WAF
 
 ## WAF 验证
 
-在 Actions → Deploy → Run workflow 中勾选 `enableWaf` 部署，然后执行：
+1. 在 **GitHub 仓库页面**的 Actions → Deploy → Run workflow 中勾选 `enableWaf` 并运行（手动触发 `workflow_dispatch`）
+2. 部署完成后，从 Smoke test 步骤的日志中复制 API URL，在**本地终端**执行：
 
 ```bash
 URL=<ApiUrl>
