@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      enableWaf:
+        description: Deploy with WAF (~$7/month while running)
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    # Skip until the OIDC role is set up (see README step 4-5)
+    if: vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write # required for OIDC
+      contents: read
+    env:
+      ENABLE_WAF: ${{ inputs.enableWaf || vars.ENABLE_WAF || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'ap-northeast-1' }}
+
+      - name: CDK diff
+        run: npx cdk diff AwsPractice-dev -c enableWaf=$ENABLE_WAF
+
+      - name: CDK deploy
+        run: |
+          npx cdk deploy AwsPractice-dev \
+            -c enableWaf=$ENABLE_WAF \
+            --require-approval never \
+            --outputs-file cdk-outputs.json
+
+      - name: Smoke test
+        run: |
+          URL=$(jq -r '."AwsPractice-dev".ApiUrl' cdk-outputs.json)
+          echo "Testing $URL"
+          curl -fsS --retry 3 --retry-delay 5 "$URL?name=ci" | tee /dev/stderr | jq -e '.message == "Hello, ci!"'
