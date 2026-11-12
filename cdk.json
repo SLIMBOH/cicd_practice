@@ -1,10 +1,21 @@
 {
   "app": "npx tsx bin/app.ts",
   "watch": {
-    "include": ["bin/**", "lib/**", "src/**"],
-    "exclude": ["node_modules", "cdk.out", "test"]
+    "include": [
+      "bin/**",
+      "lib/**",
+      "src/**"
+    ],
+    "exclude": [
+      "node_modules",
+      "cdk.out",
+      "test"
+    ]
   },
   "context": {
-    "enableWaf": false
+    "enableWaf": false,
+    "githubRepo": "SLIMBOH/cicd_practice",
+    "githubOwnerId": "39874205",
+    "githubRepoId": "1455080242"
   }
 }

@@ -6,6 +6,14 @@ export interface GithubOidcStackProps extends StackProps {
   /** e.g. "your-name/aws-practice" */
   readonly githubRepo: string;
   /**
+   * Numeric owner / repo IDs. Newer GitHub OIDC tokens embed immutable IDs in `sub`
+   * (`repo:<owner>@<ownerId>/<repo>@<repoId>:...`), which prevents a re-created
+   * repo with the same name from assuming this role. Find them via
+   * `https://api.github.com/repos/<owner>/<repo>` (`owner.id` and `id`).
+   */
+  readonly githubOwnerId?: string;
+  readonly githubRepoId?: string;
+  /**
    * GitHub Environment the deploy job runs in.
    * When a job uses `environment:`, the OIDC token's `sub` claim becomes
    * `repo:<owner>/<repo>:environment:<name>` (no branch info), so trust must match that.
@@ -34,12 +42,18 @@ export class GithubOidcStack extends Stack {
         clientIds: ['sts.amazonaws.com'],
       }).oidcProviderArn;
 
+    const [owner, repo] = props.githubRepo.split('/');
+    const subjectRepo =
+      props.githubOwnerId && props.githubRepoId
+        ? `${owner}@${props.githubOwnerId}/${repo}@${props.githubRepoId}`
+        : props.githubRepo;
+
     const role = new iam.Role(this, 'GithubDeployRole', {
       roleName: 'github-actions-aws-practice-deploy',
       assumedBy: new iam.WebIdentityPrincipal(providerArn, {
         StringEquals: {
           'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-          'token.actions.githubusercontent.com:sub': `repo:${props.githubRepo}:environment:${props.environment ?? 'dev'}`,
+          'token.actions.githubusercontent.com:sub': `repo:${subjectRepo}:environment:${props.environment ?? 'dev'}`,
         },
       }),
       description: 'Assumed by GitHub Actions; can only assume CDK bootstrap roles',

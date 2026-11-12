@@ -19,11 +19,13 @@ const apiStack = new ApiStack(app, `AwsPractice-${stage}`, { stage, enableWaf, e
 cdk.Tags.of(apiStack).add('Project', 'aws-practice');
 
 // One-time setup, deployed manually:
-//   npx cdk deploy GithubOidc -c githubRepo=<owner>/<repo>
+//   npx cdk deploy GithubOidc   (githubRepo / IDs are set in cdk.json context)
 const githubRepo = app.node.tryGetContext('githubRepo');
 if (githubRepo) {
   const oidcStack = new GithubOidcStack(app, 'GithubOidc', {
     githubRepo,
+    githubOwnerId: app.node.tryGetContext('githubOwnerId')?.toString(),
+    githubRepoId: app.node.tryGetContext('githubRepoId')?.toString(),
     existingProviderArn: app.node.tryGetContext('existingOidcProviderArn'),
     env,
   });

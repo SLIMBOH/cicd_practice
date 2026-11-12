@@ -6,6 +6,8 @@ describe('GithubOidcStack', () => {
   const t = Template.fromStack(
     new GithubOidcStack(new App(), 'Test', {
       githubRepo: 'octo/aws-practice',
+      githubOwnerId: '111',
+      githubRepoId: '222',
       env: { account: '123456789012', region: 'ap-northeast-1' },
     }),
   );
@@ -17,7 +19,7 @@ describe('GithubOidcStack', () => {
           Match.objectLike({
             Condition: {
               StringEquals: Match.objectLike({
-                'token.actions.githubusercontent.com:sub': 'repo:octo/aws-practice:environment:dev',
+                'token.actions.githubusercontent.com:sub': 'repo:octo@111/aws-practice@222:environment:dev',
               }),
             },
           }),

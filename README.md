@@ -40,7 +40,7 @@ npx cdk synth -c enableWaf=true    # 带 WAF
    ```
 4. **创建 GitHub OIDC Role**（一次）
    ```bash
-   npx cdk deploy GithubOidc -c githubRepo=SLIMBOH/cicd_practice
+   npx cdk deploy GithubOidc   # 仓库名和 ID 在 cdk.json 的 context 中设置
    # 如果账号里已经有 token.actions.githubusercontent.com 的 Provider：
    #   追加 -c existingOidcProviderArn=arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com
    ```
@@ -82,6 +82,6 @@ for i in $(seq 1 150); do curl -s -o /dev/null -w "%{http_code}\n" "$URL"; done 
 - 练习结束后执行：
   ```bash
   npx cdk destroy AwsPractice-dev
-  npx cdk destroy GithubOidc -c githubRepo=SLIMBOH/cicd_practice
+  npx cdk destroy GithubOidc
   ```
   CDKToolkit stack（bootstrap 创建的 S3 和 ECR）在 CloudFormation 中删除时，要先把 S3 bucket 清空。
